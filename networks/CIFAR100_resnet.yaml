@@ -1,0 +1,25 @@
+Network:
+  epochs: 500
+  batch_size: 50
+  n_steps: 16
+  dataset: "CIFAR100"
+  data_path: "../../datasets/cifar100"
+  # data_path: "../../../../datasets/cifar100"
+  log_path: "logs/cifar100"
+  backend: "cuda"
+  optimizer: "SGD"
+  lr: 0.0001
+  lr_norm: 0.0001
+  weight_decay: 0.0005
+  avg_spike_init: 1.2
+  loss: "count+"
+  gradient_type: "exponential"
+  pooling_type: "adjusted_avg"
+  n_class: 100
+  desired_count: 15
+  undesired_count: 1
+  tau_m: 10
+  tau_s: 6
+  tau_grad: 5.5
+
+  model_import: "networks.resnet"
