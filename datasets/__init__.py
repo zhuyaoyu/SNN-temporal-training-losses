@@ -1,1 +1,1 @@
-﻿__all__ = ["loadMNIST", "loadSpiking", "loadFashionMNIST", "loadCIFAR10", "loadCIFAR100", "loadSMNIST", "loadSpeechCommand"]
+﻿__all__ = ["loadMNIST", "loadSpiking", "loadFashionMNIST", "loadCIFAR10", "loadCIFAR100", "loadSMNIST"]

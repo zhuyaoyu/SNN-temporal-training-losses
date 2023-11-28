@@ -1,4 +1,5 @@
 __pycache__/*
 draw_figures/*
 results/*
+networks_backup/*
 test_speed.py

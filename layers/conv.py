@@ -8,7 +8,23 @@ from torch.utils.cpp_extension import load_inline, load
 from torch.cuda.amp import custom_fwd, custom_bwd
 from datetime import datetime
 
-cpp_wrapper = load(name="cpp_wrapper", sources=["layers/cpp_wrapper.cpp"], verbose=True)
+if torch.__version__ < "1.11.0":
+    cpp_wrapper = load(name="cpp_wrapper", sources=["layers/cpp_wrapper.cpp"], verbose=True)
+    conv_backward_input = lambda grad_output, input, weight, padding, stride, dilation, groups: \
+        cpp_wrapper.cudnn_convolution_backward_input(input.shape, grad_output, weight, padding, stride, dilation, groups,
+                                                     cudnn.benchmark, cudnn.deterministic, cudnn.allow_tf32)
+    conv_backward_weight = lambda grad_output, input, weight, padding, stride, dilation, groups: \
+        cpp_wrapper.cudnn_convolution_backward_weight(weight.shape, grad_output, input, padding, stride, dilation, groups, 
+                                                      cudnn.benchmark, cudnn.deterministic, cudnn.allow_tf32)
+else:
+    bias_sizes, output_padding = [0, 0, 0, 0], [0, 0]
+    transposed = False
+    conv_backward_input = lambda grad_output, input, weight, padding, stride, dilation, groups: \
+        torch.ops.aten.convolution_backward(grad_output, input, weight, bias_sizes, stride, padding, dilation, 
+                                            transposed, output_padding, groups, [True, False, False])[0]
+    conv_backward_weight = lambda grad_output, input, weight, padding, stride, dilation, groups: \
+        torch.ops.aten.convolution_backward(grad_output, input, weight, bias_sizes, stride, padding, dilation, 
+                                            transposed, output_padding, groups, [False, True, False])[1]
 
 
 class ConvLayer(nn.Conv2d):
@@ -120,14 +136,9 @@ class ConvFunc(torch.autograd.Function):
         T, n_batch, C, H, W = grad_delta.shape
         inputs = inputs.reshape(T * n_batch, *inputs.shape[2:])
         grad_in_, grad_w_ = map(lambda x: x.reshape(T * n_batch, C, H, W), [grad_in_, grad_w_])
-        grad_input = cpp_wrapper.cudnn_convolution_backward_input(inputs.shape, grad_in_.to(weight), weight, padding,
-                                                                  stride, dilation, groups,
-                                                                  cudnn.benchmark, cudnn.deterministic,
-                                                                  cudnn.allow_tf32) * inputs
-        grad_weight = cpp_wrapper.cudnn_convolution_backward_weight(weight.shape, grad_w_.to(inputs), inputs, padding,
-                                                                    stride, dilation, groups,
-                                                                    cudnn.benchmark, cudnn.deterministic,
-                                                                    cudnn.allow_tf32)
+        
+        grad_input = conv_backward_input(grad_in_, inputs, weight, padding, stride, dilation, groups) * inputs
+        grad_weight = conv_backward_weight(grad_w_, inputs, weight, padding, stride, dilation, groups)
 
         # stats
         states = glv.l_states.training

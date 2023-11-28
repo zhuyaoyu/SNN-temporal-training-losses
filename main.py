@@ -89,11 +89,6 @@ def readout(output, T):
 
 def preprocess(inputs, network_config):
     inputs = inputs.to(glv.rank)
-    if network_config['dataset'] == 'SpeechCommand':
-        shape = inputs.shape
-        inputs = inputs.reshape(shape[0], shape[-2], shape[-1])
-        inputs = inputs.permute(1,0,2)
-        return inputs
     if network_config['encoding'] == 'TTFS':
         inputs = torch.stack([TTFS(data, T) for data in inputs], dim=0)
     if len(inputs.shape) < 5:
@@ -329,8 +324,7 @@ if __name__ == '__main__':
                     "CIFAR100": loadCIFAR100.get_cifar100,
                     "DVS128Gesture": loadSpiking.get_dvs128_gesture,
                     "CIFAR10DVS": loadSpiking.get_cifar10_dvs,
-                    "SMNIST": loadSMNIST.get_smnist,
-                    "SpeechCommand": loadSpeechCommand.get_speech_command}
+                    "SMNIST": loadSMNIST.get_smnist}
     try:
         datasets = dataset_func[params['Network']['dataset']](data_path, params['Network'])
         if len(datasets) == 2:

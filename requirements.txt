@@ -1,20 +1,11 @@
-torch
-torchvision
 numpy
 matplotlib
+tensorboard
 tqdm
 pyyaml
 pandas
 seaborn
-sklearn
-
-
-change
-command = ['ninja', '-v']
-to
-command = ['ninja', '--version']
-in PYTHON_PACKAGE_PATH/torch/utils/cpp_extension.py
-
-conda install -c peterjc123 vc vs2017_runtime
-
-初始化极其重要！
+scikit-learn
+spikingjelly
+ninja
+setuptools==59.5.0
