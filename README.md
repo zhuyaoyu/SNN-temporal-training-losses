@@ -11,7 +11,7 @@ The environment can be configured by the following steps:
 
 2. Install corresponding version of cuda-nvcc if you want to use the cuda backend (you may also use the default nvcc if the version is right, or you have admin account and install the right version):
 	```shell
-conda install -c nvidia cuda-nvcc
+	conda install -c nvidia cuda-nvcc
 	```
 	
 3. Install other packages through requirements.txt:
